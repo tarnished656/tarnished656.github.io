@@ -1,13 +1,12 @@
 package io.github.lujianbo.httpproxy.core.handler;
 
+import io.github.lujianbo.httpproxy.core.util.ProxyUtil;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpRequestEncoder;
-import io.xdd.blackscience.socksserver.local.common.handler.RelayHandler;
-import io.xdd.blackscience.socksserver.local.common.utils.SocksServerUtils;
 
 import java.net.URI;
 
@@ -18,7 +17,9 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
      * */
     private Channel outboundChannel;
 
-    public HttpProxyConnectHandler(){}
+    public HttpProxyConnectHandler(){
+
+    }
 
     @Override
     public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
@@ -31,6 +32,8 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject object) throws Exception {
+
+        //如果尚未连接,则发起通向目标端口的连接
 
         /**
          * 修剪头部
@@ -50,12 +53,12 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         if (outboundChannel.isActive()) {
-            SocksServerUtils.closeOnFlush(outboundChannel);
+            ProxyUtil.closeOnFlush(outboundChannel);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        SocksServerUtils.closeOnFlush(outboundChannel);
+        ProxyUtil.closeOnFlush(outboundChannel);
     }
 }

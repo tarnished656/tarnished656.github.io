@@ -5,5 +5,8 @@ package io.github.lujianbo.httpproxy.core.ssl;
  */
 public class MenInMiddle {
 
+    public MenInMiddle(){
+
+    }
 
 }

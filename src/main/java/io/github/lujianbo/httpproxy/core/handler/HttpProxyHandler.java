@@ -24,7 +24,6 @@ public class HttpProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
                 ctx.pipeline().addLast(new HttpsProxyConnectHandler());
                 return;
             }
-
         }
         /**
          * 非https

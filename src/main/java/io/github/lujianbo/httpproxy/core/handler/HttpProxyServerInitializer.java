@@ -3,7 +3,7 @@ package io.github.lujianbo.httpproxy.core.handler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpRequestEncoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 
 public class HttpProxyServerInitializer extends ChannelInitializer<SocketChannel> {
 
@@ -18,7 +18,7 @@ public class HttpProxyServerInitializer extends ChannelInitializer<SocketChannel
         /**
          * Response 编码
          * */
-        ch.pipeline().addLast(new HttpRequestEncoder());
+        ch.pipeline().addLast(new HttpResponseEncoder());
 
 
 

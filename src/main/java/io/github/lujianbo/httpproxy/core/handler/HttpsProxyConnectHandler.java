@@ -31,7 +31,7 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
                 new GenericFutureListener<Future<Channel>>() {
                     @Override
                     public void operationComplete(final Future<Channel> future) throws Exception {
-                        final Channel outboundChannel = future.getNow();
+                        outboundChannel = future.getNow();
                         if (future.isSuccess()) {
                             processSuccess(ctx,request,outboundChannel);
                         } else {
