@@ -35,7 +35,7 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
 
         //如果尚未连接,则发起通向目标端口的连接
 
-        /**
+        /*
          * 修剪头部
          * */
         if (object instanceof HttpRequest){
@@ -43,7 +43,7 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
             URI uri=new URI(request.getUri());
             request.setUri(uri.getPath());
         }
-        /**
+        /*
          * 输出数据
          * */
         outboundChannel.write(object);

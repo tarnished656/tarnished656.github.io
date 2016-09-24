@@ -22,22 +22,19 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
     /**
      * 通向目标的Channel
      * */
-    private Channel outboundChannel;
+    //private Channel outboundChannel;
 
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest request) throws Exception {
         Promise<Channel> promise = ctx.executor().newPromise();
         promise.addListener(
-                new GenericFutureListener<Future<Channel>>() {
-                    @Override
-                    public void operationComplete(final Future<Channel> future) throws Exception {
-                        outboundChannel = future.getNow();
-                        if (future.isSuccess()) {
-                            processSuccess(ctx,request,outboundChannel);
-                        } else {
-                            processFailed(ctx,request,outboundChannel);
-                            ProxyUtil.closeOnFlush(ctx.channel());
-                        }
+                future -> {
+                    Channel outboundChannel  = (Channel) future.getNow();
+                    if (future.isSuccess()) {
+                        processSuccess(ctx,request,outboundChannel);
+                    } else {
+                        processFailed(ctx,request,outboundChannel);
+                        ProxyUtil.closeOnFlush(ctx.channel());
                     }
                 });
         /**
@@ -54,17 +51,14 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
          * 连接目标服务器,从request中获取
          * */
         URI uri=new URI(request.getUri());
-        b.connect(uri.getHost(),uri.getPort()).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if (future.isSuccess()) {
-                    //ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, request.addressType()));
-                    // Connection established use handler provided results
-                } else {
-                    // Close the connection if the connection attempt has failed.
-                    connectFailed(ctx,request);
-                    ProxyUtil.closeOnFlush(ctx.channel());
-                }
+        b.connect(uri.getHost(),uri.getPort()).addListener((ChannelFutureListener) future -> {
+            if (future.isSuccess()) {
+                //ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, request.addressType()));
+                // Connection established use handler provided results
+            } else {
+                // Close the connection if the connection attempt has failed.
+                connectFailed(ctx,request);
+                ProxyUtil.closeOnFlush(ctx.channel());
             }
         });
     }
