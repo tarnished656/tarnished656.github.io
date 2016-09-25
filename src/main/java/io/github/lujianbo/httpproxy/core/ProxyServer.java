@@ -32,17 +32,21 @@ public class ProxyServer {
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(initializer);
-            b.bind(PORT).sync().channel().closeFuture().sync();
+            b.bind(PORT).sync().addListener(future -> {
+                if (future.isSuccess()){
+                    System.out.println("启动成功");
+                }else {
+                    System.out.println("启动失败");
+                }
+            });
         } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
+            stop();
         }
     }
 
     public void stop(){
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+        System.out.println("正在关闭");
     }
 }

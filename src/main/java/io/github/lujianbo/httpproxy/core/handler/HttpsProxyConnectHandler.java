@@ -5,8 +5,6 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.util.concurrent.Future;
-import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.Promise;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,48 +17,16 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
 
     private final Bootstrap b = new Bootstrap();
 
-    /**
-     * 通向目标的Channel
-     * */
-    //private Channel outboundChannel;
+    private Channel outboundChannel;
+
+    public HttpsProxyConnectHandler(){
+
+
+    }
 
     @Override
     public void channelRead0(final ChannelHandlerContext ctx, final HttpRequest request) throws Exception {
-        Promise<Channel> promise = ctx.executor().newPromise();
-        promise.addListener(
-                future -> {
-                    Channel outboundChannel  = (Channel) future.getNow();
-                    if (future.isSuccess()) {
-                        processSuccess(ctx,request,outboundChannel);
-                    } else {
-                        processFailed(ctx,request,outboundChannel);
-                        ProxyUtil.closeOnFlush(ctx.channel());
-                    }
-                });
-        /**
-         * 配置Handler
-         * */
-        final Channel inboundChannel = ctx.channel();
-        b.group(inboundChannel.eventLoop())
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .handler(new PromiseHandler(promise));//把promise设置到Handler中来触发promise
 
-        /**
-         * 连接目标服务器,从request中获取
-         * */
-        URI uri=new URI(request.getUri());
-        b.connect(uri.getHost(),uri.getPort()).addListener((ChannelFutureListener) future -> {
-            if (future.isSuccess()) {
-                //ctx.channel().writeAndFlush(new SocksCmdResponse(SocksCmdStatus.SUCCESS, request.addressType()));
-                // Connection established use handler provided results
-            } else {
-                // Close the connection if the connection attempt has failed.
-                connectFailed(ctx,request);
-                ProxyUtil.closeOnFlush(ctx.channel());
-            }
-        });
     }
 
     @Override
@@ -68,19 +34,8 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
         ProxyUtil.closeOnFlush(ctx.channel());
     }
 
-    public void processSuccess(final ChannelHandlerContext ctx, final HttpRequest request, final Channel outboundChannel){
-        ctx.channel().writeAndFlush(respondCONNECTSuccessful()).addListener(future -> {
-            ctx.pipeline().remove(HttpsProxyConnectHandler.this);
-            //移除原先的Decode 和 Encoder
-            clean(ctx);
-            //relay
-            ctx.pipeline().addLast(new RelayHandler(outboundChannel));
-            outboundChannel.pipeline().addLast(new RelayHandler(ctx.channel()));
-        });
 
-    }
-
-    public void clean(final ChannelHandlerContext ctx){
+    private void clean(final ChannelHandlerContext ctx){
         try{
             if (ctx.pipeline().get(HttpRequestDecoder.class)!=null){
                 ctx.pipeline().remove(HttpRequestDecoder.class);
@@ -91,7 +46,7 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
         }catch (Exception ignored){}
     }
 
-    public void processFailed(final ChannelHandlerContext ctx, final HttpRequest request, final Channel outboundChannel){
+    public void processFailed(final ChannelHandlerContext ctx, final Channel outboundChannel){
 
     }
 
