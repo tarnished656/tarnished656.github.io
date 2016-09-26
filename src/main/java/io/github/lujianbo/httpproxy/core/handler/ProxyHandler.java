@@ -59,6 +59,10 @@ public class ProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
         b.connect(uri.getHost(), uri.getPort()==-1?80:uri.getPort()).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 System.out.println("连接"+uri.getHost()+":"+uri.getPort()+"成功");
+                //清理 HttpResponseEncoder
+                if (ctx.pipeline().get(HttpResponseEncoder.class)!=null){
+                    ctx.pipeline().remove(HttpResponseEncoder.class);
+                }
                 ctx.pipeline().addLast(new HttpProxyConnectHandler(future.channel()));
             } else {
                 ProxyUtil.closeOnFlush(ctx.channel());
@@ -73,8 +77,12 @@ public class ProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
                     Channel outboundChannel  = (Channel) future.getNow();
                     if (future.isSuccess()) {
                         ctx.channel().writeAndFlush(respondCONNECTSuccessful()).addListener(future2 -> {
-                            if (ctx.pipeline().get(HttpServerCodec.class)!=null){
-                                ctx.pipeline().remove(HttpServerCodec.class);
+                            //清理handler
+                            if (ctx.pipeline().get(HttpRequestDecoder.class)!=null){
+                                ctx.pipeline().remove(HttpRequestDecoder.class);
+                            }
+                            if (ctx.pipeline().get(HttpResponseEncoder.class)!=null){
+                                ctx.pipeline().remove(HttpResponseEncoder.class);
                             }
                             ctx.pipeline().addLast(new RelayHandler(outboundChannel));
                             outboundChannel.pipeline().addLast(new RelayHandler(ctx.channel()));

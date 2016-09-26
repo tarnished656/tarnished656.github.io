@@ -21,7 +21,6 @@ public class HttpsProxyConnectHandler extends SimpleChannelInboundHandler<HttpRe
 
     public HttpsProxyConnectHandler(){
 
-
     }
 
     @Override

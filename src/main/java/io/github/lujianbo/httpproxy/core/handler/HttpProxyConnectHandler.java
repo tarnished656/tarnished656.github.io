@@ -21,7 +21,6 @@ public class HttpProxyConnectHandler extends SimpleChannelInboundHandler<HttpObj
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject object) throws Exception {
-        System.out.println(object);
         if (object instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) object;
             URI uri = new URI(request.getUri());
