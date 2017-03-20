@@ -25,7 +25,6 @@ public class HTTPProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
             request.setUri(ProxyUtil.stripHost(request.uri()));
             proxyToServer.writeAndFlush(request);
         }else {
-            System.out.println("not in it");
             if (object instanceof LastHttpContent){
                 proxyToServer.writeAndFlush(object);
                 proxyToServer.write(Unpooled.EMPTY_BUFFER);

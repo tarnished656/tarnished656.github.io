@@ -15,7 +15,7 @@ public class ProxyServerInitializer extends ChannelInitializer<SocketChannel> {
         ch.pipeline().addLast(new HttpRequestDecoder());
         //用于处理第一个response的回包(仅当Https的时候会使用到)
         ch.pipeline().addLast(new HttpResponseEncoder());
-
+        //用来集中处理request的content部分
         ch.pipeline().addLast("aggregator",new HttpObjectAggregator(1048576));
 
         ch.pipeline().addLast(new ProxyHandler());
