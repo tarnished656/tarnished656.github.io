@@ -1,4 +1,4 @@
-package io.github.lujianbo.httpproxy.core.util;
+package com.lujianbo.app.httpproxy.core.handler;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
@@ -62,7 +62,6 @@ public class ProxyUtil {
         if (slashIndex == -1) {
             return "/";
         }
-        final String noHostUri = noHttpUri.substring(slashIndex);
-        return noHostUri;
+        return noHttpUri.substring(slashIndex);
     }
 }

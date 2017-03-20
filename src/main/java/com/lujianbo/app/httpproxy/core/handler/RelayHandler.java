@@ -13,9 +13,8 @@
  * License for the specific language governing permissions and limitations
  * under the License.
  */
-package io.github.lujianbo.httpproxy.core.handler;
+package com.lujianbo.app.httpproxy.core.handler;
 
-import io.github.lujianbo.httpproxy.core.util.ProxyUtil;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;

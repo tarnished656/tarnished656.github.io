@@ -1,4 +1,4 @@
-package io.github.lujianbo.httpproxy.core;
+package com.lujianbo.app.httpproxy.core;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;

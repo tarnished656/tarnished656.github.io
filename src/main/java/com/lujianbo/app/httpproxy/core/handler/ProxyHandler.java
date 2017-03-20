@@ -1,41 +1,39 @@
-package io.github.lujianbo.httpproxy.core.handler;
+package com.lujianbo.app.httpproxy.core.handler;
 
 import com.google.common.net.HostAndPort;
-import io.github.lujianbo.httpproxy.core.util.ProxyUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URISyntaxException;
 
-public class ProxyHandler extends SimpleChannelInboundHandler<Object> {
+public class ProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
 
-    private Logger logger= LoggerFactory.getLogger(getClass());
-
-    private final Bootstrap b = new Bootstrap();
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, Object object) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, HttpObject object) throws Exception {
         if (object instanceof HttpRequest){
             HttpRequest request=(HttpRequest)object;
-            if (request.getMethod().equals(HttpMethod.CONNECT)){
+            //处理https的连接请求
+            if (request.method().equals(HttpMethod.CONNECT)){
                 ctx.pipeline().remove(ProxyHandler.this);//移除
                 processHttps(ctx,request);
             }else {
+                //处理 http的请求
                 ctx.pipeline().remove(ProxyHandler.this);//移除
                 processHttp(ctx,request);
             }
         }else {
-
+            //该请求必须是 HttpRequest
+            ProxyUtil.closeOnFlush(ctx.channel());
         }
     }
 
     private void processHttp(ChannelHandlerContext ctx, HttpRequest request) {
         final Channel inboundChannel = ctx.channel();
+        Bootstrap b = new Bootstrap();
         b.group(inboundChannel.eventLoop())
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
@@ -44,20 +42,20 @@ public class ProxyHandler extends SimpleChannelInboundHandler<Object> {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ch.pipeline().addLast(new HttpRequestEncoder());
-                        //ch.pipeline().addLast(new HttpObjectAggregator(1048576));
-                        ch.pipeline().addLast(new ProxyToServerHandler(ctx.channel()));
-
-                        request.setUri(ProxyUtil.stripHost(request.getUri()));
-                        ch.writeAndFlush(request);
+                        //从目标服务器发来的信息都做中继处理
+                        ch.pipeline().addLast(new RelayHandler(ctx.channel()));
                     }
                 });
-        HostAndPort parsedHostAndPort = HostAndPort.fromString(ProxyUtil.parseHostAndPort(request.getUri()));
-        b.connect(parsedHostAndPort.getHostText(),parsedHostAndPort.getPortOrDefault(80)).addListener((ChannelFutureListener) future -> {
+        HostAndPort parsedHostAndPort = HostAndPort.fromString(ProxyUtil.parseHostAndPort(request.uri()));
+        b.connect(parsedHostAndPort.getHost(),parsedHostAndPort.getPortOrDefault(80)).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 if (ctx.pipeline().get(HttpResponseEncoder.class)!=null){
                     ctx.pipeline().remove(HttpResponseEncoder.class);
                 }
-                ctx.pipeline().addLast(new ClientToProxyHandler(future.channel()));
+                ctx.pipeline().addLast(new HTTPProxyHandler(future.channel()));
+                //成功后将会写入之前的请求
+                request.setUri(ProxyUtil.stripHost(request.uri()));
+                future.channel().writeAndFlush(request);
             } else {
                 ProxyUtil.closeOnFlush(ctx.channel());
             }
@@ -66,6 +64,7 @@ public class ProxyHandler extends SimpleChannelInboundHandler<Object> {
 
     private void processHttps(ChannelHandlerContext ctx, HttpRequest request) throws URISyntaxException {
         final Channel inboundChannel = ctx.channel();
+        Bootstrap b = new Bootstrap();
         b.group(inboundChannel.eventLoop())
                 .channel(NioSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 10000)
@@ -79,9 +78,9 @@ public class ProxyHandler extends SimpleChannelInboundHandler<Object> {
         /**
          * 连接目标服务器,从request中获取
          * */
-        HostAndPort parsedHostAndPort = HostAndPort.fromString(ProxyUtil.parseHostAndPort(request.getUri()));
+        HostAndPort parsedHostAndPort = HostAndPort.fromString(ProxyUtil.parseHostAndPort(request.uri()));
 
-        b.connect(parsedHostAndPort.getHostText(),parsedHostAndPort.getPortOrDefault(443)).addListener((ChannelFutureListener) future -> {
+        b.connect(parsedHostAndPort.getHost(),parsedHostAndPort.getPortOrDefault(443)).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 ctx.channel().writeAndFlush(respondCONNECTSuccessful()).addListener(future2 -> {
                     if (ctx.pipeline().get(HttpRequestDecoder.class)!=null){
@@ -103,8 +102,8 @@ public class ProxyHandler extends SimpleChannelInboundHandler<Object> {
 
     private HttpResponse respondCONNECTSuccessful(){
         HttpResponse response=new DefaultHttpResponse(HttpVersion.HTTP_1_1, CONNECTION_ESTABLISHED);
-        response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-        response.headers().set("Proxy-Connection", HttpHeaders.Values.KEEP_ALIVE);
+        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        response.headers().set("Proxy-Connection", HttpHeaderValues.KEEP_ALIVE);
         return response;
     }
 
