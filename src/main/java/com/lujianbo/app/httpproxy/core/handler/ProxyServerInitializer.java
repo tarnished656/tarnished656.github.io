@@ -18,6 +18,6 @@ public class ProxyServerInitializer extends ChannelInitializer<SocketChannel> {
         //用来集中处理request的content部分
         ch.pipeline().addLast("aggregator",new HttpObjectAggregator(1048576));
 
-        ch.pipeline().addLast(new ProxyHandler());
+        ch.pipeline().addLast(new ProxyConnectHandler());
     }
 }

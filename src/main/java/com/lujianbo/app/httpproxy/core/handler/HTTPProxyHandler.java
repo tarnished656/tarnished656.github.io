@@ -2,7 +2,6 @@ package com.lujianbo.app.httpproxy.core.handler;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
-import io.netty.handler.codec.http.HttpContent;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.LastHttpContent;
@@ -22,7 +21,9 @@ public class HTTPProxyHandler extends SimpleChannelInboundHandler<HttpObject> {
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject object) throws Exception {
         if (object instanceof HttpRequest) {
             HttpRequest request = (HttpRequest) object;
+            System.out.println("before :"+request.uri());
             request.setUri(ProxyUtil.stripHost(request.uri()));
+            System.out.println("after :"+request.uri());
             proxyToServer.writeAndFlush(request);
         }else {
             if (object instanceof LastHttpContent){

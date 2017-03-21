@@ -1,5 +1,6 @@
 package com.lujianbo.app.httpproxy.core;
 
+import com.lujianbo.app.httpproxy.core.handler.ProxyServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -48,5 +49,10 @@ public class ProxyServer {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         System.out.println("正在关闭");
+    }
+
+    public static void main(String[] args) {
+        ProxyServer proxyServer=new ProxyServer(new ProxyServerInitializer());
+        proxyServer.start();
     }
 }
