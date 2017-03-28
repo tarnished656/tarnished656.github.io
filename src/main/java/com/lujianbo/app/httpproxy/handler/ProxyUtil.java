@@ -12,6 +12,9 @@ import java.util.regex.Pattern;
  */
 public class ProxyUtil {
 
+    private static Pattern HTTP_PREFIX = Pattern.compile("^https?://.*",
+            Pattern.CASE_INSENSITIVE);
+
     /**
      * Closes the specified channel after all queued write requests are flushed.
      */
@@ -20,9 +23,6 @@ public class ProxyUtil {
             ch.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
         }
     }
-
-    private static Pattern HTTP_PREFIX = Pattern.compile("^https?://.*",
-            Pattern.CASE_INSENSITIVE);
 
     public static String parseHostAndPort(final String uri) {
         final String tempUri;

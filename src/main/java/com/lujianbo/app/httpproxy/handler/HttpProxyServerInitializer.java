@@ -10,8 +10,8 @@ public class HttpProxyServerInitializer extends ChannelInitializer<SocketChannel
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
 
-        ch.pipeline().addLast("HttpRequestDecoder",new HttpRequestDecoder());
-        ch.pipeline().addLast("HttpResponseEncoder",new HttpResponseEncoder());
+        ch.pipeline().addLast("HttpRequestDecoder", new HttpRequestDecoder());
+        ch.pipeline().addLast("HttpResponseEncoder", new HttpResponseEncoder());
         ch.pipeline().addLast(new HttpConnectPooledHandler());
     }
 }

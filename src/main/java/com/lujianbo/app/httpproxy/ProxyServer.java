@@ -20,8 +20,13 @@ public class ProxyServer {
 
     private ChannelInitializer<SocketChannel> initializer;
 
-    public ProxyServer(ChannelInitializer<SocketChannel> initializer){
-        this.initializer=initializer;
+    public ProxyServer(ChannelInitializer<SocketChannel> initializer) {
+        this.initializer = initializer;
+    }
+
+    public static void main(String[] args) {
+        ProxyServer proxyServer = new ProxyServer(new HttpProxyServerInitializer());
+        proxyServer.start();
     }
 
     public void start() {
@@ -31,9 +36,9 @@ public class ProxyServer {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(initializer);
             b.bind(PORT).sync().addListener(future -> {
-                if (future.isSuccess()){
+                if (future.isSuccess()) {
                     System.out.println("启动成功");
-                }else {
+                } else {
                     System.out.println("启动失败");
                 }
             });
@@ -42,14 +47,9 @@ public class ProxyServer {
         }
     }
 
-    public void stop(){
+    public void stop() {
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
         System.out.println("正在关闭");
-    }
-
-    public static void main(String[] args) {
-        ProxyServer proxyServer=new ProxyServer(new HttpProxyServerInitializer());
-        proxyServer.start();
     }
 }

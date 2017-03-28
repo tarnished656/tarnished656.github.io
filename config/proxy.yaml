@@ -1,0 +1,5 @@
+port: 8888
+minIdlePerKey: 0
+maxIdlePerKey: 6
+maxTotalPerKey: 64
+maxTotal: 1024
