@@ -1,4 +1,4 @@
-package com.lujianbo.app.httpproxy.core.handler;
+package com.lujianbo.app.httpproxy.handler;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;

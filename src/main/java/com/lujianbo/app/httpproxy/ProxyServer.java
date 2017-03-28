@@ -1,21 +1,19 @@
-package com.lujianbo.app.httpproxy.core;
+package com.lujianbo.app.httpproxy;
 
-import com.lujianbo.app.httpproxy.core.handler.ProxyServerInitializer;
+import com.lujianbo.app.httpproxy.handler.HttpProxyServerInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
 
 /**
  * Created by jianbo on 2016/3/22.
  */
 public class ProxyServer {
 
-    static final int PORT = Integer.parseInt(System.getProperty("port", "7778"));
+    static final int PORT = Integer.parseInt(System.getProperty("port", "8888"));
 
     private EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -31,7 +29,6 @@ public class ProxyServer {
             ServerBootstrap b = new ServerBootstrap();
             b.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
-                    .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(initializer);
             b.bind(PORT).sync().addListener(future -> {
                 if (future.isSuccess()){
@@ -52,7 +49,7 @@ public class ProxyServer {
     }
 
     public static void main(String[] args) {
-        ProxyServer proxyServer=new ProxyServer(new ProxyServerInitializer());
+        ProxyServer proxyServer=new ProxyServer(new HttpProxyServerInitializer());
         proxyServer.start();
     }
 }
