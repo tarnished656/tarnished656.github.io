@@ -31,5 +31,9 @@ public class ChannelObjectPool {
     public void returnChannel(String key, Channel channel) throws Exception {
         channelKeyedObjectPool.returnObject(key, channel);
     }
+    public void invalidateChannel(String key, Channel channel) throws Exception {
+        channelKeyedObjectPool.invalidateObject(key, channel);
+    }
+
 
 }
