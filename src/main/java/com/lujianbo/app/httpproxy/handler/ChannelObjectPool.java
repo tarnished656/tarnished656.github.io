@@ -18,7 +18,7 @@ public class ChannelObjectPool {
 
     public ChannelObjectPool() {
         GenericKeyedObjectPoolConfig config = new GenericKeyedObjectPoolConfig();
-        config.setMaxTotalPerKey(64);
+        config.setMaxTotalPerKey(64);//一个地址总计提供64个连接
         config.setMaxTotal(1024 * 1204);
         config.setMaxIdlePerKey(6);//一个连接最多6个空闲
         this.channelKeyedObjectPool = new GenericKeyedObjectPool<>(new ChannelKeyedPooledObjectFactory(), config);

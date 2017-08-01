@@ -54,15 +54,11 @@ public class HttpConnectPooledHandler extends ChannelInboundHandlerAdapter {
                     //触发该事件的时候 outboundChannel 只能为空
                     if (outboundChannel == null) {
                         Channel channel = connect(host, port);
-                        //中继流量
                         channel.pipeline().addLast(new RelayHandler(ctx.channel()));
                         this.outboundChannel = channel;
-                        //返回事件
                         ctx.channel().writeAndFlush(httpsSuccessResponse).sync();
-                        //清理handler
                         clearHttpHandler(ctx);
                     }
-                    //doHttps(ctx,host,port);
                 } else {
                     String host = hostAndPort.getHost();
                     int port = hostAndPort.getPortOrDefault(80);
